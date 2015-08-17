@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import com.rits.cloning.*;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.PriorityQueue;
 import java.util.Stack;
 
@@ -50,12 +51,14 @@ public class Main {
     public static final int STARTNODE = 25;
     public static final int ENDNODE = 1;
     public static final int DP = 4;
+    public static final int NEIGHBORHOOD_SIZE = 5;
     public static Cloner cloner = new Cloner();
 
     public static double c1 = 2.05;
     public static double c2 = 2.05;
     public static ArrayList<Particle> swarm;
     public static ArrayList<Double> gbest;
+    protected static ArrayList<Particle> nbests;
     static int MAX_VERTS = 50000;
     public static int[][] GRAPH = new int[][]{
         {0, 2, 4, 0, 0, 0, 0},
@@ -97,6 +100,7 @@ public class Main {
         ArrayList<String> gBests = new ArrayList<>();
         for (int k = 0; k < 100; k++) {
             init();
+            int groupCounter = -1;
             for (int t = 0; t < 10; t++) {
                 for (int i = 0; i < swarm.size(); i++) {
                     r1 = round(rand.nextDouble(), DP);
@@ -104,21 +108,11 @@ public class Main {
 
                     // Get differences between X and pBest and X and gBest
                     ArrayList<Double[]> pDiff = Particle.subtractPositions(swarm.get(i).getPBest(), swarm.get(i).getPosition());
-                    int nBestIndex = i;
-                    double  minFitness = swarm.get(i).getFitness();
-                    if(i > 0){
-                        if(swarm.get(i-1).getFitness() < minFitness){
-                            minFitness = swarm.get(i-1).getFitness();
-                            nBestIndex = i-1;
-                        }
+                                       
+                    if(i%NEIGHBORHOOD_SIZE == 0){
+                        groupCounter++;
                     }
-                    if(i < swarm.size()-1){
-                         if(swarm.get(i+1).getFitness() < minFitness){
-                            nBestIndex = i+1;
-                        }
-                    }
-                        
-                    ArrayList<Double[]> gDiff = Particle.subtractPositions(swarm.get(nBestIndex).getPosition(), swarm.get(i).getPosition());
+                    ArrayList<Double[]> gDiff = Particle.subtractPositions(nbests.get(groupCounter).getPosition(), swarm.get(i).getPosition());
 
                     // Get magnitude of each difference
                     int pDiffMagnitude = (int) round(c1 * r1 * pDiff.size(), 0);
@@ -154,6 +148,7 @@ public class Main {
                         swarm.get(i).setPBest(newPositionList);
                     }
                 }
+                computeNBests();
             }
             computeGBest();
             Stack<Integer> bestPath = Particle.decodePath(gbest);
@@ -174,6 +169,7 @@ public class Main {
         
     }
 
+
     public static void printVelocity(ArrayList<Double[]> v) {
         System.out.print("[");
         for (int i = 0; i < v.size() - 1; i++) {
@@ -183,11 +179,34 @@ public class Main {
     }
 
     private static void init() {
+        int groupCounter = -1;
         GRAPH = randGraph();
         swarm = new ArrayList<>();
-        for (int i = 0; i < GRAPHSIZE/2; i++) {
+        nbests = new ArrayList<>();
+        for (int i = 0; i < GRAPHSIZE / 2; i++) {
             Particle p = new Particle(GRAPHSIZE);
             swarm.add(p);
+            if (i % NEIGHBORHOOD_SIZE == 0) {
+                groupCounter++;
+                nbests.add(p);
+            }
+            if (p.getFitness() < nbests.get(groupCounter).getFitness()) {
+                nbests.set(groupCounter, p);
+            }
+        }
+
+    }
+    
+    private static void computeNBests(){
+        int groupCounter = -1;
+        for (int i = 0; i < swarm.size(); i++) {
+            Particle p = swarm.get(i);
+            if (i % NEIGHBORHOOD_SIZE == 0) {
+                groupCounter++;
+            }
+            if (p.getFitness() < nbests.get(groupCounter).getFitness()) {
+                nbests.set(groupCounter, p);
+            }
         }
     }
     
