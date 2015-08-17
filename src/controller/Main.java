@@ -97,14 +97,28 @@ public class Main {
         ArrayList<String> gBests = new ArrayList<>();
         for (int k = 0; k < 100; k++) {
             init();
-            for (int i = 0; i < 10; i++) {
-                for (Particle p : swarm) {
+            for (int t = 0; t < 10; t++) {
+                for (int i = 0; i < swarm.size(); i++) {
                     r1 = round(rand.nextDouble(), DP);
                     r2 = round(rand.nextDouble(), DP);
 
                     // Get differences between X and pBest and X and gBest
-                    ArrayList<Double[]> pDiff = Particle.subtractPositions(p.getPBest(), p.getPosition());
-                    ArrayList<Double[]> gDiff = Particle.subtractPositions(gbest, p.getPosition());
+                    ArrayList<Double[]> pDiff = Particle.subtractPositions(swarm.get(i).getPBest(), swarm.get(i).getPosition());
+                    int nBestIndex = i;
+                    double  minFitness = swarm.get(i).getFitness();
+                    if(i > 0){
+                        if(swarm.get(i-1).getFitness() < minFitness){
+                            minFitness = swarm.get(i-1).getFitness();
+                            nBestIndex = i-1;
+                        }
+                    }
+                    if(i < swarm.size()-1){
+                         if(swarm.get(i+1).getFitness() < minFitness){
+                            nBestIndex = i+1;
+                        }
+                    }
+                        
+                    ArrayList<Double[]> gDiff = Particle.subtractPositions(swarm.get(nBestIndex).getPosition(), swarm.get(i).getPosition());
 
                     // Get magnitude of each difference
                     int pDiffMagnitude = (int) round(c1 * r1 * pDiff.size(), 0);
@@ -131,17 +145,17 @@ public class Main {
                         }
                     }
                     for (Integer j : emptyIndices) {
-                        newPosition[j] = p.getVelocity().get(j);
+                        newPosition[j] = swarm.get(i).getVelocity().get(j);
                     }
-                    double prevFitness = p.getFitness();
+                    double prevFitness = swarm.get(i).getFitness();
                     ArrayList<Double> newPositionList = new ArrayList<>(Arrays.asList(newPosition));
-                    p.setPosition(newPositionList);
-                    if (p.getFitness() < prevFitness) {
-                        p.setPBest(newPositionList);
+                    swarm.get(i).setPosition(newPositionList);
+                    if (swarm.get(i).getFitness() < prevFitness) {
+                        swarm.get(i).setPBest(newPositionList);
                     }
                 }
-                computeGBest();
             }
+            computeGBest();
             Stack<Integer> bestPath = Particle.decodePath(gbest);
             String output = "Path: " + bestPath + " Fitness: " + Particle.getPathCost(bestPath);
             int pso = (int) Particle.getPathCost(bestPath);
@@ -175,7 +189,6 @@ public class Main {
             Particle p = new Particle(GRAPHSIZE);
             swarm.add(p);
         }
-        computeGBest();
     }
     
 
