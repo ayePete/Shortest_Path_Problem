@@ -10,9 +10,10 @@ public class Particle {
 	
     private ArrayList<Double> position;
     private ArrayList<Double> pBest;
-    Random rand = new Random();
+    Random rand = Main.rand;
     ArrayList<Double> velocity;
     private double fitness = 0;
+    private double pBestFitness;
     Cloner cloner = new Cloner();
 
 
@@ -47,6 +48,7 @@ public class Particle {
 
     public void setPBest(ArrayList<Double> pBest) {
         this.pBest = cloner.deepClone(pBest);
+        pBestFitness = fitness;
     }
     
     public Particle(int n){
@@ -61,12 +63,28 @@ public class Particle {
         velocity  = new ArrayList<>();
         generateVelocity();
         computeFitness();
+        pBestFitness = fitness;
     }
     
-    public static ArrayList<Double[]> subtractPositions(ArrayList<Double> p1, ArrayList<Double> p2){
+    public Particle (){
+        position = new ArrayList<>();
+        pBest = (ArrayList) position.clone();
+        velocity  = new ArrayList<>();
+        generateVelocity();
+    }
+    
+    public ArrayList<Double[]> subtractPosition(ArrayList<Double> p1){
         ArrayList<Double[]> difference = new ArrayList<>();
+        double incr = 0.05;
         for(int i = 0; i < p1.size(); i++){
-            if(!p1.get(i).equals(p2.get(i))){
+            Double pVal = p1.get(i);
+            if(!pVal.equals(position.get(i))){
+//                double prevVelVal = velocity.get(i);
+//                if(prevVelVal > pVal){
+//                    velocity.set(i, prevVelVal - incr);
+//                } else {
+//                    velocity.set(i, prevVelVal + incr);
+//                }
                 Double[] value = new Double[2];
                 value[0] = Double.valueOf(i);
                 value[1] = p1.get(i);
@@ -98,13 +116,13 @@ public class Particle {
      */
     private double computeFitness(){
         /** First, we build the path according to position's biases **/
-        Stack<Integer> path = decodePath(position);
+        path = decodePath(position);
         /** Then, we compute its cost **/
         fitness = getPathCost(path);
         return fitness;
     }
     
-    public static double getPathCost(Stack<Integer> path){
+    public double getPathCost(Stack<Integer> path){
         double pathCost = 0;
         Iterator<Integer> i = path.iterator();
         int from = i.next();
@@ -115,8 +133,9 @@ public class Particle {
         }
         return pathCost;
     }
+    public Stack<Integer> path;
     
-    public static Stack<Integer> decodePath(ArrayList<Double> biases){
+    public Stack<Integer> decodePath(ArrayList<Double> biases){
         int start = Main.STARTNODE;
         int end = Main.ENDNODE;
         Integer[][] graph = new Integer[Main.GRAPHSIZE][Main.GRAPHSIZE];
@@ -125,7 +144,7 @@ public class Particle {
                 graph[i][j] = Main.GRAPH[i][j];
             }
         }
-        Stack<Integer> path = new Stack<>();
+        path = new Stack<>();
         int currNode = start;
         path.push(currNode);
         for (int i = 0; i < graph.length; i++) {
@@ -178,6 +197,25 @@ public class Particle {
     @Override
     public String toString(){
         return position.toString();
+    }
+
+    /**
+     * @return the pBestFitness
+     */
+    public double getPBestFitness() {
+        return pBestFitness;
+    }
+
+    /**
+     * @param pBestFitness the pBestFitness to set
+     */
+    public void setPBestFitness(double pBestFitness) {
+        this.pBestFitness = pBestFitness;
+    }
+    
+    public void updatePBest(){
+        pBest = (ArrayList) position.clone();
+        pBestFitness = fitness;
     }
     
     /** @Override
