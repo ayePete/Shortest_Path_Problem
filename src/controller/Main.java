@@ -44,10 +44,10 @@ class Data implements Comparable<Data> {
 
 public class Main {
     
-    public static final int GRAPHSIZE = 100;
-    public static final int EDGE_NO = 280;
+    public static final int GRAPHSIZE = 90;
+    public static final int EDGE_NO = 230;
     public static final int STARTNODE = 2;
-    public static final int ENDNODE = 68;
+    public static final int ENDNODE = 42;
     public static final int DP = 4;
     public static Cloner cloner = new Cloner();
 
@@ -216,7 +216,7 @@ public class Main {
         if (improvement) {
             gbest = cloner.deepClone(swarm.get(minIndex).getPosition());
         }
-        //gbest = memeticSearch(gbest);
+        gbest = memeticSearch(gbest);
     }
 
     public static double round(double d, int numbersAfterDecimalPoint) {
@@ -320,10 +320,14 @@ public class Main {
     }
     private static ArrayList<Double> memeticSearch(ArrayList<Double> prevVal) {
         double min = minFitness;
-        double gamma = 0.05;
+        double gamma = 0.5;
         int prob = 0;
         ArrayList<Double> result = cloner.deepClone(prevVal);
         ArrayList<Double> prospective = cloner.deepClone(prevVal);
+        ArrayList<Double> z = new ArrayList<>();
+        for (int i = 0; i < GRAPH.length; i++) {
+            z.add(rand.nextDouble() * 3);
+        }
         //System.out.println("Previous: " + prevVal);
         
         for (int i = 0; i < 10; i++) {
@@ -334,12 +338,18 @@ public class Main {
                 //System.out.println(index);
                 if(prob == 0)
                     gamma = gamma * -1;
-                prospective.set(j, prevVal.get(j) + gamma);
+                double newVal = prevVal.get(j) + gamma * z.get(j);
+                if(newVal > 3.0)
+                    newVal = 3.0;
+                prospective.set(j, newVal);
             }
             //System.out.println(prospective);
             double fitness = dummyParticle.getPathCost(dummyParticle.decodePath(prospective));
             //System.out.println("Min: " + min + " MemFitness: " + fitness);
-            if(fitness > min){
+            if (fitness > min) {
+                for (int j = 0; j < GRAPH.length; j++) {
+                    z.set(j, rand.nextDouble() * 3);
+                }
                 gamma -= 0.01;
             }
             else if(fitness < min){
