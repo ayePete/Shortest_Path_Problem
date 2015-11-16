@@ -44,10 +44,10 @@ class Data implements Comparable<Data> {
 
 public class Main {
     
-    public static final int GRAPHSIZE = 90;
-    public static final int EDGE_NO = 230;
-    public static final int STARTNODE = 2;
-    public static final int ENDNODE = 42;
+    public static final int GRAPHSIZE = 100;
+    public static final int EDGE_NO = 250;
+    public static final int STARTNODE = 1;
+    public static final int ENDNODE = 62;
     public static final int DP = 4;
     public static Cloner cloner = new Cloner();
 
@@ -93,9 +93,10 @@ public class Main {
         int accuracy = 0;
         double r1, r2;
         ArrayList<String> gBests = new ArrayList<>();
+        GRAPH = randGraph();
         for (int k = 0; k < 100; k++) {
             init();
-            for (int i = 0; i < 60; i++) {
+            for (int i = 0; i < 50; i++) {
                 for (Particle p : swarm) {
                     r1 = round(rand.nextDouble(), DP);
                     r2 = round(rand.nextDouble(), DP);
@@ -165,8 +166,8 @@ public class Main {
             
             int pso = (int) dummyParticle.getPathCost(bestPath);
             String output = "Path: " + bestPath + " Fitness: " + pso;
-            int dijkstra = dijkstra(GRAPH, STARTNODE, ENDNODE);
             System.out.println("PSO: " + pso);
+            int dijkstra = dijkstra(GRAPH, STARTNODE, ENDNODE);
                     
             System.out.println("Dijkstra: " + dijkstra);
             if(dijkstra == pso)
@@ -190,7 +191,7 @@ public class Main {
 
     private static void init() {
         GRAPH = randGraph();
-        //System.out.println(Arrays.deepToString(GRAPH));
+        System.out.println(Arrays.deepToString(GRAPH));
         swarm = new ArrayList<>();
         for (int i = 0; i < GRAPHSIZE/2; i++) {
             Particle p = new Particle(GRAPHSIZE);
@@ -234,6 +235,10 @@ public class Main {
         int cost = 0;
         for (int i = 0; i < g.length; i++) {
             int j = rand.nextInt(GRAPHSIZE);
+            if(i == j){
+                --i;
+                continue;
+            }
             cost = 10 + rand.nextInt(1000);
             g[i][j] = cost;
             g[j][i] = cost;

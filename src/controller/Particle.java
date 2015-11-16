@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Stack;
 import com.rits.cloning.Cloner;
+import java.util.Arrays;
 
 public class Particle {
 	
@@ -138,28 +139,25 @@ public class Particle {
     public Stack<Integer> decodePath(ArrayList<Double> biases){
         int start = Main.STARTNODE;
         int end = Main.ENDNODE;
-        Integer[][] graph = new Integer[Main.GRAPHSIZE][Main.GRAPHSIZE];
-        for (int i = 0; i < graph.length; i++) {
-            for (int j = 0; j < graph.length; j++) {
-                graph[i][j] = Main.GRAPH[i][j];
-            }
-        }
+        int[][] graph = Main.GRAPH;
+        
         path = new Stack<>();
+        ArrayList<Integer> invalid = new ArrayList<>();
         int currNode = start;
         path.push(currNode);
-        for (int i = 0; i < graph.length; i++) {
-            graph[i][currNode] = 0;
-        }
+//        for (int i = 0; i < graph.length; i++) {
+//            graph[i][currNode] = 0;
+//        }
         while(true){
             double minBiasedCost = Double.MAX_VALUE;
             int nextNode = currNode;
             
             // Select node with least biased cost from adjacent nodes
-            for (int i = 0; i < graph[currNode].length; i++) {
-                if (graph[currNode][i] == 0)
+            for (int i = 0; i < Main.GRAPH[currNode].length; i++) {
+                if (invalid.contains(i) || path.contains(i) || Main.GRAPH[currNode][i] == 0)
                     continue;
                 // Bias edge cost by weight values of both nodes adjacent to it
-                double biasedCost = biases.get(currNode) * biases.get(i) * graph[currNode][i];
+                double biasedCost = biases.get(currNode) * biases.get(i) * Main.GRAPH[currNode][i];
                 // Get edge with minimum biased cost
                 if(biasedCost < minBiasedCost){
                     nextNode = i;
@@ -176,20 +174,22 @@ public class Particle {
             // Check for pedantic (dead end) node and backtrack if true
             if(minBiasedCost == Double.MAX_VALUE){
                 int prevNode = path.pop();
-                graph[prevNode][currNode] = 0;
-                graph[currNode][prevNode] = 0;
+                invalid.add(prevNode);
+//                graph[prevNode][currNode] = 0;
+//                graph[currNode][prevNode] = 0;
                 currNode = path.peek();
                 continue;
             }
             
             // Clear out the costs at nextNode's column of the adj matrix to 
             // prevent duplication of nodes in path
-            for (int i = 0; i < graph.length; i++) {
-                graph[i][nextNode] = 0;
-            }
-            graph[nextNode][currNode] = 0;
+//            for (int i = 0; i < graph.length; i++) {
+//                graph[i][nextNode] = 0;
+//            }
+//            graph[nextNode][currNode] = 0;
             
             currNode = nextNode;
+            //System.out.println("currNode: " + currNode);
             path.push(currNode);
         }
         return path;
